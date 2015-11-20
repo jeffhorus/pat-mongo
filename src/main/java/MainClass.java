@@ -51,20 +51,23 @@ public class MainClass {
 
                 int register_code = client.register(username, password);
                 if (register_code == 0) {
-                    System.out.println("Registrasi berhasil");
-                } else {
-                    System.out.println("Registrasi gagal");
+                    System.out.println("SUCCESS : Registrasi berhasil");
+                } else if (register_code == -1) {
+                    System.out.println("ERROR : Registrasi gagal. Username sudah digunakan oleh user lain.");
+                } else if (register_code == -2) {
+                    System.out.println("ERROR : Silakan logout terlebih dahulu");
                 }
                 scn.nextLine();
             } else if (command.toLowerCase().startsWith("login")) {
                 String username = scn.next();
                 String password = scn.next();
 
-                client.user = client.login(username, password);
-                if (client.user != null) {
-                    System.out.println("Login berhasil");
+                User userTemp = client.login(username, password);
+                if (userTemp != null) {
+                    client.user = userTemp;
+                    System.out.println("SUCCES : Login berhasil");
                 } else {
-                    System.out.println("Login gagal");
+                    System.out.println("ERROR : Login gagal. Silakan logout dahulu atau cek kembali username dan password yang dimasukkan.");
                 }
                 scn.nextLine();
             }
@@ -72,10 +75,26 @@ public class MainClass {
                 String username = scn.next();
 
                 int follow_code = client.follow(username);
-                if (follow_code == -1) {
-                    System.out.println("follow gagal");
+                if (follow_code < 0) {
+                    switch (follow_code) {
+                        case -1:
+                            System.out.println("ERROR : Silakan login terlebih dahulu.");
+                            break;
+                        case -2:
+                            System.out.println("ERROR : Tidak dapat memfollow diri sendiri.");
+                            break;
+                        case -3:
+                            System.out.println("ERROR : User tidak ditemukan.");
+                            break;
+                        case -4:
+                            System.out.println("ERROR : User sudah di-follow oleh anda.");
+                            break;
+                        default:
+                            System.out.println("ERROR : Follow gagal.");
+                            break;
+                    }
                 } else {
-                    System.out.println("follow berhasil");
+                    System.out.println("SUCCESS : Follow berhasil");
                 }
                 scn.nextLine();
             }
@@ -85,16 +104,16 @@ public class MainClass {
 
                 int tweet_code = client.tweet(tweet);
                 if (tweet_code == -1) {
-                    System.out.println("tweet gagal");
+                    System.out.println("ERROR : Silakan login terlebih dahulu");
                 } else {
-                    System.out.println("tweet berhasil");
+                    System.out.println("SUCCESS : Tweet berhasil");
                 }
             } else if (command.toLowerCase().startsWith("userl")) {
                 String username = scn.next();
 
                 int code = client.userline(username);
-                if (code == -1) {
-                    System.out.println("error");
+                if (code < 0) {
+                    System.out.println("ERROR : Silakan login terlebih dahulu");
                 }
                 scn.nextLine();
             }
@@ -102,12 +121,13 @@ public class MainClass {
                 String username = scn.next();
 
                 int code = client.timeline(username);
-                if (code == -1) {
-                    System.out.println("error");
+                if (code < 0) {
+                    System.out.println("ERROR : Silakan login terlebih dahulu");
                 }
                 scn.nextLine();
             } else if (command.toLowerCase().startsWith("logout")) {
                 client.logout();
+                System.out.println("SUCCESS : Anda telah logout dari sistem");
                 scn.nextLine();
             }
             System.out.println("(enter to continue)");
@@ -133,6 +153,11 @@ public class MainClass {
     }
 
     private int register (String username, String password) {
+        // prekondisi harus belum login
+        if (user != null) {
+            return -2;
+        }
+
         User reg_user = new User(username, password);
         try {
             store.save(reg_user);
@@ -143,6 +168,7 @@ public class MainClass {
     }
 
     private User login (String username, String password) {
+        // prekondisi harus belum login
         if (user != null) {
             return null;
         }
@@ -154,16 +180,31 @@ public class MainClass {
     }
 
     private int follow (String username) {
-        // prekondisi
+        // prekondisi harus sudah login
         if (user == null) return -1;
         // body
+
+        // bila user yang difollow adalah diri sendiri
+        if (username.equals(user.getUsername())) {
+            return -2;
+        }
+
+        User followeduser = store.createQuery(User.class)
+                .field("username").equal(username)
+                .get();
+
+        // bila user yang difollow tidak ada
+        if (followeduser == null) {
+            return -3;
+        }
+
         Follower follower = new Follower(username, user.getUsername(), new Date());
 
         try {
             store.save(follower);
             return 0;
         } catch (DuplicateKeyException e) {
-            return -1;
+            return -4;
         }
     }
 
@@ -189,11 +230,7 @@ public class MainClass {
             store.save(t_line);
         }
 
-        try {
-            return 0;
-        } catch (DuplicateKeyException e) {
-            return -1;
-        }
+        return 0;
     }
 
     private int userline (String username) {
