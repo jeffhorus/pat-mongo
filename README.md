@@ -28,18 +28,18 @@ Simple Twitter-Like Terminal Application using Java and MongoDB.
 
 ### Follow a friend
 1. Cek apakah username teman sama dengan username sendiri
-2. Jika berbeda, cek apakah terdapat username teman tersebut dengan perintah `SELECT * FROM users WHERE username = '<username>'`
-3. Jika terdapat teman dengan username tersebut, maka masukkan username teman ke dalam database dengan perintah `INSERT INTO friends (username, friend, since) VALUES ('<username_self>', '<username_friend>', 'now')` dan perintah `INSERT INTO followers (username, follower, since) VALUES ('<username_friend>', '<username_self>', 'now')`
+2. Jika berbeda, cek apakah terdapat username teman tersebut dengan perintah `dataStore.createQuery(User.class).field("username").equal(<username>).get()`
+3. Jika terdapat teman dengan username tersebut, maka masukkan username teman ke dalam database dengan perintah `dataStore.save(new Follower(<username_friend>, <username_self>, <tweet_time>));`
 
 ### Tweet
-1. Masukkan tweet ke dalam tweets dengan perintah `INSERT INTO tweets (tweet_id, username, body) VALUES (<tweet_id>, '<username>', '<body>')`
-2. Masukkan tweet ke dalam userline agar mudah dalam menampilkan tweet per user dengan perintah `INSERT INTO userline (username, time, tweet_id) VALUES ('<username>', <time>, <tweet_id>)`
-3. Masukkan tweet ke dalam timeline agar mudah dalam menampilkan timeline per user dengan perintah `INSERT INTO timeline (username, time, tweet_id) VALUES ('<username>', <time>, <tweet_id>)`
+1. Masukkan tweet ke dalam tweets dengan perintah `dataStore.save(new Tweet(<username>, <tweet_body>, <tweet_time>))`
+2. Masukkan tweet ke dalam userline agar mudah dalam menampilkan tweet per user dengan perintah `dataStore.save(new UserLine(<username>, <tweet_body>, <tweet_time>))`
+3. Masukkan tweet ke dalam timeline seluruh followers agar mudah dalam menampilkan timeline per user dengan perintah `dataStore.save(new TimeLine(<username_follower>, <tweet_body>, <tweet_time>))`
 
 ### Menampilkan tweet per user
-1. Ambil semua tweet_id dari userline dengan perintah `SELECT * FROM userline WHERE username = '<username>'`
-2. Kemudian untuk setiap tweet_id, ambil tweet tersebut dengan perintah `SELECT * FROM tweets WHERE tweet_id = <tweet_id>`
+1. Ambil semua userline dengan perintah `dataStore.createQuery(UserLine.class).field("username").equal(<username>).order("-time").asList()`
+2. Kemudian untuk setiap userline, ambil tweet tersebut dengan perintah `userline.getUsername()`, `userline.getTime()`, dan `userline.getBody()`
 
 ### Menampilkan timeline per user
-1. Ambil semua tweet_id dari timeline dengan perintah `SELECT * FROM timeline WHERE username = '<username>'`
-2. Kemudian untuk setiap tweet_id, ambil tweet tersebut dengan perintah `SELECT * FROM tweets WHERE tweet_id = <tweet_id>`
+1. Ambil semua timeline dengan perintah `dataStore.createQuery(TimeLine.class).field("username").equal(<username>).order("-time").asList()`
+2. Kemudian untuk setiap timeline, ambil tweet tersebut dengan perintah `timeline.getUsername()`, `timeline.getTime()`, dan `timeline.getBody()`
