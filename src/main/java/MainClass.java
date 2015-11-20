@@ -10,7 +10,6 @@ import org.mongodb.morphia.Morphia;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
-import java.util.UUID;
 
 public class MainClass {
     private String keyspace = "lingga";
