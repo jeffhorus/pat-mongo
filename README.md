@@ -13,8 +13,8 @@ Simple Twitter-Like Terminal Application using Java and MongoDB.
 2. Selanjutnya `Import Project` dengan menggunakan IntelliJ IDEA
 
 ## Cara menjalankan program
-1. Buka project
-2. Klik kanan pada MainClass.java, klik `Run MainClass.Main()`
+1. Buka folder `bin/`
+2. Jalankan `pat-mongo.jar` (melalui terminal : `java -jar pat-mongo.jar`, atau double click langsung pada `pat-mongo.jar` pada explorer)
 
 ## Perintah/query database untuk mengimplementasikan fungsionalitas
 
